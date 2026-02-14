@@ -12,6 +12,11 @@ class SizeQuantitySerializer(serializers.ModelSerializer):
     class Meta:
         model = SizeQuantity
         fields = ['id', 'size_label', 'quantity', 'barcode']
+        extra_kwargs = {
+            'size_label': {'help_text': 'Обозначение размера (например S, M, 42)'},
+            'quantity': {'help_text': 'Остаток на складе'},
+            'barcode': {'help_text': 'Штрихкод размера'},
+        }
 
 
 class ItemListSerializer(serializers.ModelSerializer):
@@ -53,11 +58,15 @@ class ItemDetailSerializer(serializers.ModelSerializer):
 
 
 class ItemCreateUpdateSerializer(serializers.ModelSerializer):
-    photo = serializers.ImageField(required=False, allow_null=True)
+    photo = serializers.ImageField(required=False, allow_null=True, help_text='Фото товара')
 
     class Meta:
         model = Item
         fields = ['id', 'name', 'photo', 'item_description', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'name': {'help_text': 'Название товара'},
+            'item_description': {'help_text': 'Описание (необязательно)', 'required': False},
+        }
 
     def to_representation(self, instance):
         """Возвращаем полный URL фото в ответе."""
@@ -83,9 +92,9 @@ class SupplyLineItemSerializer(serializers.ModelSerializer):
 
 
 class SupplyLineItemCreateSerializer(serializers.Serializer):
-    item_id = serializers.UUIDField()
-    size_label = serializers.CharField()
-    quantity = serializers.IntegerField(min_value=1)
+    item_id = serializers.UUIDField(help_text='UUID товара')
+    size_label = serializers.CharField(help_text='Обозначение размера (S, M, 42 и т.д.)')
+    quantity = serializers.IntegerField(min_value=1, help_text='Количество (≥ 1)')
 
 
 class SupplyListSerializer(serializers.ModelSerializer):
@@ -107,8 +116,14 @@ class SupplyDetailSerializer(serializers.ModelSerializer):
 
 
 class SupplyCreateSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=['in', 'out'])
-    lines = SupplyLineItemCreateSerializer(many=True)
+    type = serializers.ChoiceField(
+        choices=['in', 'out'],
+        help_text='in — поставка на склад, out — отгрузка'
+    )
+    lines = SupplyLineItemCreateSerializer(
+        many=True,
+        help_text='Список позиций: item_id, size_label, quantity'
+    )
 
     def create(self, validated_data):
         from .services import create_supply
