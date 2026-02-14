@@ -25,7 +25,7 @@ class ItemListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Item
-        fields = ['id', 'name', 'photo', 'item_description', 'created_at', 'updated_at', 'sizes']
+        fields = ['id', 'name', 'photo', 'item_description', 'price', 'created_at', 'updated_at', 'sizes']
 
     def get_photo(self, obj):
         if not obj.photo:
@@ -44,7 +44,7 @@ class ItemDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Item
-        fields = ['id', 'name', 'photo', 'item_description', 'created_at', 'updated_at', 'sizes']
+        fields = ['id', 'name', 'photo', 'item_description', 'price', 'created_at', 'updated_at', 'sizes']
 
     def get_photo(self, obj):
         if not obj.photo:
@@ -62,10 +62,11 @@ class ItemCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Item
-        fields = ['id', 'name', 'photo', 'item_description', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'photo', 'item_description', 'price', 'created_at', 'updated_at']
         extra_kwargs = {
             'name': {'help_text': 'Название товара'},
             'item_description': {'help_text': 'Описание (необязательно)', 'required': False},
+            'price': {'help_text': 'Цена (необязательно)', 'required': False},
         }
 
     def to_representation(self, instance):

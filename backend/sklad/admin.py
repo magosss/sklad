@@ -51,7 +51,7 @@ class SupplyLineItemInline(admin.TabularInline):
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
     inlines = [SizeQuantityInline]
-    list_display = ['name', 'workshop', 'created_at']
+    list_display = ['name', 'price', 'workshop', 'created_at']
     list_filter = ['workshop']
 
 
