@@ -92,7 +92,7 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -121,11 +121,19 @@ REST_FRAMEWORK = {
 # OpenAPI 3.1 (OAS 3.1)
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Склад API (kchrmarket)',
-    'DESCRIPTION': 'API учёта товаров, остатков и поставок. Публичный эндпоинт /api/public/items/ — без авторизации.',
+    'DESCRIPTION': '''
+API учёта товаров, остатков и поставок для kchrmarket.ru.
+
+- **Авторизация:** POST /api/auth/login/ (username, password) → access/refresh JWT. Дальше заголовок `Authorization: Bearer <access>`.
+- **Товары:** CRUD по цеху пользователя; размеры и остатки — вложенные эндпоинты.
+- **Поставки:** type `in` (приход) / `out` (отгрузка), состав в `lines`.
+- **Публичное API:** GET /api/public/items/ — список товаров без авторизации (опционально workshop_id).
+'''.strip(),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'OAS_VERSION': '3.1.0',
     'COMPONENT_SPLIT_REQUEST': True,
+    'SORT_OPERATIONS': False,
 }
 
 from datetime import timedelta
