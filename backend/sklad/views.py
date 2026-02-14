@@ -6,9 +6,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Item, SizeQuantity, Supply
+from .models import Item, SizeQuantity, Supply, Workshop
 from .serializers import (
     ItemListSerializer,
+    WorkshopSerializer,
     ItemDetailSerializer,
     ItemCreateUpdateSerializer,
     SizeQuantitySerializer,
@@ -17,6 +18,19 @@ from .serializers import (
 )
 from .services import get_or_create_size, get_workshop_for_user
 from .mixins import WorkshopFilterMixin
+
+
+@extend_schema(
+    summary='Публичный список складов',
+    description='Список складов (цехов) для выбора на сайте. Без авторизации.',
+    tags=['Публичное API'],
+)
+class PublicWorkshopListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        qs = Workshop.objects.all().order_by('name')
+        return Response(WorkshopSerializer(qs, many=True).data)
 
 
 @extend_schema(

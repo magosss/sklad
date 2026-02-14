@@ -9,6 +9,7 @@ from .views import (
     SupplyViewSet,
     SizeByBarcodeView,
     PublicItemListView,
+    PublicWorkshopListView,
 )
 from .auth_views import LoginView
 
@@ -20,6 +21,7 @@ urlpatterns = [
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
     path('schema/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('public/workshops/', PublicWorkshopListView.as_view(), name='public-workshops'),
     path('public/items/', PublicItemListView.as_view(), name='public-items'),
     path('auth/login/', LoginView.as_view(), name='login'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
