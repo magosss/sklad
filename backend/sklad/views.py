@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.permissions import AllowAny
@@ -18,8 +19,12 @@ from .services import get_or_create_size, get_workshop_for_user
 from .mixins import WorkshopFilterMixin
 
 
+@extend_schema(
+    summary='Публичный список товаров',
+    description='Список товаров с остатками по размерам. Без авторизации. Опционально: workshop_id в query — фильтр по цеху.',
+    tags=['Публичное API'],
+)
 class PublicItemListView(APIView):
-    """Публичный (без авторизации) список товаров с остатками для сайта заказов."""
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -33,6 +38,14 @@ class PublicItemListView(APIView):
         return Response(serializer.data)
 
 
+@extend_schema_view(
+    list=extend_schema(summary='Список товаров', description='Товары текущего цеха пользователя.'),
+    retrieve=extend_schema(summary='Детали товара', description='Один товар по id со списком размеров и остатками.'),
+    create=extend_schema(summary='Создать товар', description='name, item_description (опц.), photo (опц.).'),
+    update=extend_schema(summary='Обновить товар', description='Полное обновление полей товара.'),
+    partial_update=extend_schema(summary='Частично обновить товар', description='PATCH: обновить только переданные поля.'),
+    destroy=extend_schema(summary='Удалить товар', description='Удаление товара по id.'),
+)
 class ItemViewSet(WorkshopFilterMixin, ModelViewSet):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -56,8 +69,12 @@ class ItemViewSet(WorkshopFilterMixin, ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    get=extend_schema(summary='Список размеров товара', description='Все размеры и остатки по товару item_pk.'),
+    post=extend_schema(summary='Добавить размер', description='Тело: size_label (обяз.), barcode (опц.).'),
+    tags=['Размеры и остатки'],
+)
 class SizeQuantityListCreateView(WorkshopFilterMixin, APIView):
-    """Список и создание размеров — простой APIView без ViewSet."""
     parser_classes = [JSONParser]
 
     def get_item_queryset(self):
@@ -89,6 +106,11 @@ class SizeQuantityListCreateView(WorkshopFilterMixin, APIView):
         return Response(SizeQuantitySerializer(size).data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    summary='Поиск по штрихкоду',
+    description='Query: barcode. Возвращает item_id и size_label. Только товары цеха пользователя.',
+    tags=['Размеры и остатки'],
+)
 class SizeByBarcodeView(WorkshopFilterMixin, APIView):
     def get(self, request):
         barcode = request.query_params.get('barcode', '').strip()
@@ -110,8 +132,12 @@ class SizeByBarcodeView(WorkshopFilterMixin, APIView):
             return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
+@extend_schema(
+    patch=extend_schema(summary='Изменить размер', description='Тело: size_label, quantity, barcode (опц.).'),
+    delete=extend_schema(summary='Удалить размер', description='Удаление размера по item_pk и pk.'),
+    tags=['Размеры и остатки'],
+)
 class SizeQuantityDetailView(WorkshopFilterMixin, APIView):
-    """PATCH и DELETE для одного размера."""
     parser_classes = [JSONParser]
 
     def get_item_queryset(self):
@@ -140,6 +166,12 @@ class SizeQuantityDetailView(WorkshopFilterMixin, APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema_view(
+    list=extend_schema(summary='Список поставок', description='Поставки цеха. Query: item_id — фильтр по товару.'),
+    retrieve=extend_schema(summary='Детали поставки', description='Одна поставка с составом (line_items) и created_by_username.'),
+    create=extend_schema(summary='Создать поставку/отгрузку', description='Тело: type (in|out), lines: [{item_id, size_label, quantity}].'),
+    tags=['Поставки'],
+)
 class SupplyViewSet(WorkshopFilterMixin, ModelViewSet):
     def get_queryset(self):
         qs = self.get_workshop_queryset(Supply)

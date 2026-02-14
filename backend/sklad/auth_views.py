@@ -1,4 +1,5 @@
 """Авторизация."""
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -9,6 +10,11 @@ from .serializers import WorkshopSerializer
 from .services import get_workshop_for_user
 
 
+@extend_schema(
+    summary='Вход',
+    description='Тело: username, password. Возвращает access, refresh (JWT), user (id, username), workshop (id, name). Дальнейшие запросы: заголовок Authorization: Bearer <access>.',
+    tags=['Авторизация'],
+)
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
