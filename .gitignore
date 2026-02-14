@@ -1,0 +1,44 @@
+# Python / Django
+backend/venv/
+backend/.venv/
+backend/env/
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+backend/*.sqlite3
+backend/db.sqlite3
+backend/media/
+backend/static/
+.env
+.env.local
+*.log
+
+# iOS / Xcode
+sklad/*.xcodeproj/xcuserdata/
+sklad/*.xcworkspace/xcuserdata/
+sklad/**/DerivedData/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Секреты и локальные настройки (не коммитить)
+*.pem
+secrets/

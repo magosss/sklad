@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Мои заказы — ALABAR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6f6f6;
+      --card: #fff;
+      --accent: #7c3aed;
+      --text: #1a1a1a;
+      --text-muted: #666;
+      --border: #e5e5e5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.4;
+    }
+    .header {
+      background: var(--accent);
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-back {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: inherit;
+    }
+    .header-title {
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: #fff;
+    }
+    .main {
+      padding: 16px;
+      padding-bottom: 32px;
+    }
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .order-card {
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .order-card-header {
+      padding: 12px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .order-date {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .order-id {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .order-delivery {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .order-delivery strong { color: var(--text); }
+    .order-items {
+      padding: 12px 16px;
+    }
+    .order-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .order-item:last-child { border-bottom: none; }
+    .order-item img {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .order-item-info { flex: 1; min-width: 0; }
+    .order-item-title { font-weight: 500; font-size: 0.9rem; margin-bottom: 2px; }
+    .order-item-qty-price { font-size: 0.85rem; color: var(--text-muted); }
+    .order-total-row {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+    .order-total-row span:last-child { color: var(--accent); }
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+    .empty-state p { margin-bottom: 16px; font-size: 1.1rem; }
+    .empty-state a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .empty-state a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="header-back" aria-label="Назад">←</a>
+      <h1 class="header-title">Мои заказы</h1>
+    </div>
+  </header>
+  <main class="main">
+    <div class="orders-list" id="ordersList"></div>
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <p>У вас пока нет заказов</p>
+      <a href="index.html">Перейти в каталог</a>
+    </div>
+  </main>
+  <script>
+    function formatOrderDate(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString('ru-RU', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (_) {
+        return iso;
+      }
+    }
+
+    function renderOrders() {
+      const list = document.getElementById('ordersList');
+      const empty = document.getElementById('emptyState');
+      let orders = [];
+      try {
+        const raw = localStorage.getItem('alabar_orders');
+        if (raw) orders = JSON.parse(raw);
+      } catch (_) {}
+      if (!orders.length) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      list.innerHTML = orders.map(order => {
+        const deliveryText = order.deliveryMode === 'pvz'
+          ? `Пункт выдачи: ${order.deliveryInfo.city || ''}, ${order.deliveryInfo.address || ''} · Доставка ${(order.deliveryInfo.deliveryPrice || 0).toLocaleString('ru-RU')} ₽`
+          : `Доставка по адресу: ${order.deliveryInfo.address || '—'} · ${(order.deliveryInfo.deliveryPrice || 0).toLocaleString('ru-RU')} ₽`;
+        const itemsHtml = (order.items || []).map(item => {
+          const sizeStr = item.size != null ? ` · Размер ${item.size}` : '';
+          return `
+          <div class="order-item">
+            <img src="${item.image || ''}" alt="">
+            <div class="order-item-info">
+              <div class="order-item-title">${(item.title || '').replace(/</g, '&lt;')}${sizeStr}</div>
+              <div class="order-item-qty-price">${item.qty || 1} × ${(item.price || 0).toLocaleString('ru-RU')} ₽</div>
+            </div>
+          </div>
+        `;
+        }).join('');
+        return `
+          <article class="order-card">
+            <div class="order-card-header">
+              <span class="order-date">${formatOrderDate(order.date)}</span>
+              <span class="order-id">${(order.id || '').replace(/</g, '&lt;')}</span>
+            </div>
+            <div class="order-delivery"><strong>Получение:</strong> ${deliveryText.replace(/</g, '&lt;')}</div>
+            <div class="order-items">${itemsHtml}</div>
+            <div class="order-total-row">
+              <span>Итого</span>
+              <span>${(order.total != null ? order.total : 0).toLocaleString('ru-RU')} ₽</span>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    renderOrders();
+  </script>
+</body>
+</html>
