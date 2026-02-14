@@ -69,10 +69,9 @@ class ItemViewSet(WorkshopFilterMixin, ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_schema(
-    get=extend_schema(summary='Список размеров товара', description='Все размеры и остатки по товару item_pk.'),
-    post=extend_schema(summary='Добавить размер', description='Тело: size_label (обяз.), barcode (опц.).'),
-    tags=['Размеры и остатки'],
+@extend_schema_view(
+    get=extend_schema(summary='Список размеров товара', description='Все размеры и остатки по товару item_pk.', tags=['Размеры и остатки']),
+    post=extend_schema(summary='Добавить размер', description='Тело: size_label (обяз.), barcode (опц.).', tags=['Размеры и остатки']),
 )
 class SizeQuantityListCreateView(WorkshopFilterMixin, APIView):
     parser_classes = [JSONParser]
@@ -132,10 +131,9 @@ class SizeByBarcodeView(WorkshopFilterMixin, APIView):
             return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-@extend_schema(
-    patch=extend_schema(summary='Изменить размер', description='Тело: size_label, quantity, barcode (опц.).'),
-    delete=extend_schema(summary='Удалить размер', description='Удаление размера по item_pk и pk.'),
-    tags=['Размеры и остатки'],
+@extend_schema_view(
+    patch=extend_schema(summary='Изменить размер', description='Тело: size_label, quantity, barcode (опц.).', tags=['Размеры и остатки']),
+    delete=extend_schema(summary='Удалить размер', description='Удаление размера по item_pk и pk.', tags=['Размеры и остатки']),
 )
 class SizeQuantityDetailView(WorkshopFilterMixin, APIView):
     parser_classes = [JSONParser]
