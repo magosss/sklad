@@ -31,6 +31,8 @@ class Item(models.Model):
     photo = models.ImageField(upload_to='items/', null=True, blank=True)
     item_description = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name='Цена')
+    wb_url = models.URLField(max_length=500, blank=True, verbose_name='Ссылка на ВБ')
+    ozon_url = models.URLField(max_length=500, blank=True, verbose_name='Ссылка на Озон')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -70,6 +72,51 @@ class Supply(models.Model):
 class SupplyLineItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     supply = models.ForeignKey(Supply, on_delete=models.CASCADE, related_name='line_items')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    size_label = models.CharField(max_length=50)
+    quantity = models.IntegerField()
+
+
+class Order(models.Model):
+    """Заказ: источник, адрес доставки, телефон, состав и итоговая сумма."""
+    STATUS_NEW = 'new'
+    STATUS_SHIPPED = 'shipped'
+    STATUS_IN_TRANSIT = 'in_transit'
+    STATUS_READY = 'ready'
+    STATUS_DELIVERED = 'delivered'
+    STATUS_CANCELLED = 'cancelled'
+    STATUS_CHOICES = [
+        (STATUS_NEW, 'Новый'),
+        (STATUS_SHIPPED, 'Отгружено'),
+        (STATUS_IN_TRANSIT, 'В пути'),
+        (STATUS_READY, 'Готово к получению'),
+        (STATUS_DELIVERED, 'Доставлено'),
+        (STATUS_CANCELLED, 'Отменено'),
+    ]
+
+    workshop = models.ForeignKey(
+        Workshop, on_delete=models.CASCADE, related_name='orders', null=True, blank=True
+    )
+    source = models.CharField(max_length=500, blank=True, verbose_name='Источник заказа')
+    delivery_address = models.TextField(blank=True, verbose_name='Адрес доставки')
+    client_phone = models.CharField(max_length=50, blank=True, verbose_name='Телефон клиента')
+    total = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0, verbose_name='Итоговая сумма'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_NEW,
+        verbose_name='Статус',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class OrderLineItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='line_items')
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     size_label = models.CharField(max_length=50)
     quantity = models.IntegerField()

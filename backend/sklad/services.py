@@ -1,4 +1,5 @@
-from .models import Item, SizeQuantity, Supply, SupplyLineItem, Workshop
+from decimal import Decimal
+from .models import Item, Order, OrderLineItem, SizeQuantity, Supply, SupplyLineItem, Workshop
 from django.contrib.auth.models import User
 
 
@@ -69,3 +70,73 @@ def create_supply(
         item.save(update_fields=['updated_at'])
 
     return supply
+
+
+def create_order(
+    workshop: Workshop | None,
+    source: str,
+    delivery_address: str,
+    client_phone: str,
+    lines: list[tuple],
+) -> Order:
+    """
+    lines: [(item_id, size_label, quantity), ...]
+    total считается по ценам товаров (item.price * quantity).
+    При создании заказа остатки на складе уменьшаются.
+    """
+    if not lines:
+        raise ValueError('Добавьте хотя бы одну позицию в заказ')
+
+    item_queryset = (
+        Item.objects.filter(workshop=workshop)
+        if workshop
+        else Item.objects.filter(workshop__isnull=True)
+    )
+
+    # Проверка наличия и списание
+    for item_id, size_label, quantity in lines:
+        try:
+            item = item_queryset.get(id=item_id)
+        except Item.DoesNotExist:
+            raise ValueError(f'Товар с id {item_id} не найден или не принадлежит вашему цеху.')
+        size = get_or_create_size(item, size_label)
+        if size.quantity < quantity:
+            raise ValueError(
+                f'Недостаточно на складе: {item.name}, размер {size_label} — доступно {size.quantity}, запрошено {quantity}.'
+            )
+
+    order = Order.objects.create(
+        workshop=workshop,
+        source=source or '',
+        delivery_address=delivery_address or '',
+        client_phone=client_phone or '',
+        total=Decimal('0'),
+    )
+    total = Decimal('0')
+
+    for item_id, size_label, quantity in lines:
+        item = item_queryset.get(id=item_id)
+        OrderLineItem.objects.create(
+            order=order,
+            item=item,
+            size_label=size_label,
+            quantity=quantity,
+        )
+        price = item.price or Decimal('0')
+        total += price * quantity
+        # Списываем со склада
+        size = get_or_create_size(item, size_label)
+        size.quantity -= quantity
+        size.save()
+
+    order.total = total
+    order.save(update_fields=['total'])
+    return order
+
+
+def restore_order_stock(order: Order) -> None:
+    """Вернуть остатки на склад при отмене заказа."""
+    for line in order.line_items.select_related('item').all():
+        size = get_or_create_size(line.item, line.size_label)
+        size.quantity += line.quantity
+        size.save()

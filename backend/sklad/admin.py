@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import Item, SizeQuantity, Supply, SupplyLineItem, Workshop, WorkshopAssignment
+from .models import Item, Order, OrderLineItem, SizeQuantity, Supply, SupplyLineItem, Workshop, WorkshopAssignment
 
 
 class WorkshopAssignmentInline(admin.StackedInline):
@@ -60,3 +60,16 @@ class SupplyAdmin(admin.ModelAdmin):
     inlines = [SupplyLineItemInline]
     list_display = ['number', 'type', 'workshop', 'created_by', 'date']
     list_filter = ['workshop']
+
+
+class OrderLineItemInline(admin.TabularInline):
+    model = OrderLineItem
+    extra = 0
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    inlines = [OrderLineItemInline]
+    list_display = ['id', 'status', 'source', 'client_phone', 'total', 'workshop', 'created_at']
+    list_filter = ['workshop', 'status']
+    search_fields = ['source', 'client_phone', 'delivery_address']
