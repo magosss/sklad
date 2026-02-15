@@ -125,9 +125,10 @@ SPECTACULAR_SETTINGS = {
 API учёта товаров, остатков и поставок для kchrmarket.ru.
 
 - **Авторизация:** POST /api/auth/login/ (username, password) → access/refresh JWT. Дальше заголовок `Authorization: Bearer <access>`.
-- **Товары:** CRUD по цеху пользователя; размеры и остатки — вложенные эндпоинты.
+- **Товары:** CRUD по цеху пользователя (name, photo, item_description, price, wb_url, ozon_url); размеры и остатки — вложенные эндпоинты.
 - **Поставки:** type `in` (приход) / `out` (отгрузка), состав в `lines`.
-- **Публичное API:** GET /api/public/items/ — список товаров без авторизации (опционально workshop_id).
+- **Заказы:** POST /api/orders/ — создание (source, delivery_address, client_phone, lines); остатки списываются. POST /api/orders/{id}/set_status/ — смена статуса (при «Отменено» остатки возвращаются).
+- **Публичное API (без авторизации):** GET /api/public/items/ — список (id, name, photo, price, wb_url, ozon_url, workshop, sizes; без created_at, updated_at, item_description). Query: workshop_id. GET /api/public/items/{id}/ — полные данные товара по id.
 '''.strip(),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
